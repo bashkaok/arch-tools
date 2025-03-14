@@ -1,8 +1,11 @@
-package com.jisj.archtools;
+package com.jisj.archtools.cmd;
 
 import java.nio.file.Path;
 
-public interface ExtractUtil {
+/**
+ * Common interface for extract commands of archive utils
+ */
+public interface CmdExtractUtil extends CmdUtil {
     static String encloseInQuotations(String str) {
         return "\"" + str + "\"";
     }
@@ -15,6 +18,13 @@ public interface ExtractUtil {
      * @return command string
      */
     String extractToDestinationCmd(Path archive, Path destination);
+
+    /**
+     * Creates string command for get archive file list
+     *
+     * @param archive source archive
+     * @return command string
+     */
     String getFileListCmd(Path archive);
 
 }

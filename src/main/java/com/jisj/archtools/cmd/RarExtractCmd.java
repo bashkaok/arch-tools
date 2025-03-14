@@ -1,9 +1,8 @@
-package com.jisj.archtools;
+package com.jisj.archtools.cmd;
 
 import java.nio.file.Path;
-import java.util.List;
 
-import static com.jisj.archtools.ExtractUtil.encloseInQuotations;
+import static com.jisj.archtools.cmd.CmdExtractUtil.encloseInQuotations;
 
 /**
  * Native extract util for RAR archives
@@ -13,12 +12,12 @@ import static com.jisj.archtools.ExtractUtil.encloseInQuotations;
  *
  * @param utilPath path to extract util. Default: {@code C:/Program Files/WinRAR/unrar.exe}
  */
-public record RarExtractUtil(Path utilPath) implements ExtractUtil {
+public record RarExtractCmd(Path utilPath) implements CmdExtractUtil {
 
     /**
      * Default constructor: "C:/Program Files/WinRAR/unrar.exe"
      */
-    RarExtractUtil() {
+    public RarExtractCmd() {
         this(Path.of("C:/Program Files/WinRAR/unrar.exe"));
     }
 
@@ -40,8 +39,19 @@ public record RarExtractUtil(Path utilPath) implements ExtractUtil {
                         encloseInQuotations(destination.toAbsolutePath().toString()));
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param archive     source archive
+     * @return {@code unrar lb <archive> <destination>}
+     */
     public String getFileListCmd(Path archive) {
         return encloseInQuotations(utilPath.toAbsolutePath().toString()) + " lb %s"
                 .formatted(encloseInQuotations(archive.toAbsolutePath().toString()));
+    }
+
+    @Override
+    public Path getUtilPath() {
+        return utilPath;
     }
 }

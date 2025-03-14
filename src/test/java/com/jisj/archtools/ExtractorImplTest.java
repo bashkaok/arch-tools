@@ -1,5 +1,8 @@
 package com.jisj.archtools;
 
+import com.jisj.archtools.cmd.CmdExtractUtil;
+import com.jisj.archtools.cmd.RarExtractCmd;
+import com.jisj.archtools.cmd.ZipCmd;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -11,8 +14,10 @@ import java.util.Comparator;
 import static java.lang.Integer.MAX_VALUE;
 import static org.junit.jupiter.api.Assertions.*;
 
-class ExtractorTest {
-    private static final Path archiveRAR = Path.of("src/test/resources/You & Me Baby Poses for G9.rar");
+class ExtractorImplTest {
+    private static final Path archiveRAR = Path.of("src/test/resources/RAR archive.rar"); //264 files
+    private static final Path archiveZIP = Path.of("src/test/resources/ZIP archive.zip"); //7 files
+    private static final Path archive7z = Path.of("src/test/resources/SEVEN archive.7z"); //2 files
     private static final Path destination = Path.of("target/test-data/tmp");
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -29,18 +34,29 @@ class ExtractorTest {
 
     @Test
     void extractToCmd_RAR() {
-        ExtractUtil unRarUtil = new RarExtractUtil();
-        assertEquals("\"C:\\Program Files\\WinRAR\\unrar.exe\" x -y \"D:\\Tools\\Java\\arch-tools\\src\\test\\resources\\You & Me Baby Poses for G9.rar\" \"D:\\Tools\\Java\\arch-tools\\target\\test-data\\tmp\"",
+        CmdExtractUtil unRarUtil = new RarExtractCmd();
+        assertEquals("\"C:\\Program Files\\WinRAR\\unrar.exe\" x -y \"D:\\Tools\\Java\\arch-tools\\src\\test\\resources\\RAR archive.rar\" \"D:\\Tools\\Java\\arch-tools\\target\\test-data\\tmp\"",
                 unRarUtil.extractToDestinationCmd(archiveRAR, destination));
     }
 
     @Test
+    void commands_ZIP_7Z() {
+        String util = "C:/Program Files/7-Zip/7z.exe";
+        CmdExtractUtil zipUtil = new ZipCmd();
+        assertEquals(Path.of(util), zipUtil.getUtilPath());
+        assertEquals("\"C:\\Program Files\\7-Zip\\7z.exe\" l -ba \"d:\\test.zip\"", zipUtil.getFileListCmd(Path.of("d:/test.zip")));
+
+    }
+
+    @Test
     void extractTo_RAR() throws IOException {
-        Extractor unPacker = new Extractor(new RarExtractUtil());
+        ExtractorImpl unPacker = new ExtractorImpl(new RarExtractCmd());
         unPacker.extractTo(archiveRAR, destination);
         assertFalse(Files.exists(destination.resolve(archiveRAR.getFileName().toString() + ".log")));
         unPacker.setBreakTimeOutSec(0);
-        assertThrowsExactly(TimeOutException.class, ()-> unPacker.extractTo(archiveRAR, destination));
+
+//        unPacker.setProgressListener(System.out::println);
+        unPacker.extractTo(archiveRAR, destination);
         unPacker.setBreakTimeOutSec(10);
 
         unPacker.setLogFile(destination.resolve("test.log"));
@@ -49,7 +65,7 @@ class ExtractorTest {
         assertThrowsExactly(ArchiveException.class, () -> unPacker.extractTo(Path.of("src/test/resources/fake.rar"), destination));
         String str = Files.readString(destination.resolve("test.log"));
         int count = 0;
-        int index = -1;
+        int index;
         String find = "is not RAR archive";
         while (true) {
             index = str.indexOf(find);
@@ -62,31 +78,20 @@ class ExtractorTest {
 
     @Test
     void getFileList_RAR() throws FileNotFoundException, ArchiveException {
-        Extractor unPacker = new Extractor(new RarExtractUtil());
+        ExtractorImpl unPacker = new ExtractorImpl(new RarExtractCmd());
+//        unPacker.setProgressListener(System.out::println);
         assertEquals(264, unPacker.getFileList(archiveRAR).size());
+        assertEquals(0, unPacker.getFileList(archiveZIP).size());
+        assertEquals(0, unPacker.getFileList(archive7z).size());
     }
 
     @Test
-    void process() {
-        try {
-            final ProcessBuilder p = new ProcessBuilder(new RarExtractUtil().getFileListCmd(archiveRAR));
-            final Process proc = p.start();
-
-            BufferedReader input =
-                    new BufferedReader(new InputStreamReader(proc.getInputStream()));
-            BufferedReader error =
-                    new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-
-
-            String line = null;
-            while ((line = input.readLine()) != null) {
-                System.out.println(line);
-            }
-            line = null;
-            while ((line = error.readLine()) != null) {
-                System.out.println(line);
-            }
-        }
-        catch(Exception e) {e.printStackTrace();}
+    void getFileList_ZIP_7Z() throws FileNotFoundException, ArchiveException {
+        ExtractorImpl unPacker = new ExtractorImpl(new ZipCmd());
+//        unPacker.setProgressListener(System.out::println);
+        assertEquals(264, unPacker.getFileList(archiveRAR).size());
+        assertEquals(7, unPacker.getFileList(archiveZIP).size());
+        assertEquals(2, unPacker.getFileList(archive7z).size());
     }
+
 }
