@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<command-configuration>
+    <util>
+        <util-code>ZIP_EXTRACTOR</util-code>
+        <util-path>C:/Program Files/WinRAR/unrar.exe</util-path>
+        <commands>
+            <command>
+                <interface>extractTo</interface>
+                <util-cmd>unrar x -y %s %s</util-cmd>
+            </command>
+        </commands>
+    </util>
+</command-configuration>

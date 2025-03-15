@@ -12,7 +12,7 @@ import static com.jisj.archtools.cmd.CmdExtractUtil.encloseInQuotations;
  *
  * @param utilPath path to extract util. Default: {@code C:/Program Files/7-Zip/7z.ex}
  */
-public record ZipCmd(Path utilPath) implements CmdExtractUtil {
+public record ZipCmd(Path utilPath) implements CmdExtractUtil, CmdPackUtil {
 
     /**
      * Default constructor: "C:/Program Files/WinRAR/unrar.exe"
@@ -42,7 +42,7 @@ public record ZipCmd(Path utilPath) implements CmdExtractUtil {
     /**
      * {@inheritDoc}
      *
-     * @param archive     source archive
+     * @param archive source archive
      * @return {@code 7z l -ba <archive>}
      */
     public String getFileListCmd(Path archive) {
@@ -53,5 +53,17 @@ public record ZipCmd(Path utilPath) implements CmdExtractUtil {
     @Override
     public Path getUtilPath() {
         return utilPath;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code 7z a -y <archive> <sourceFolder>/*}
+     */
+    @Override
+    public String packOfFolderCmd(Path archive, Path sourceFolder) {
+        return encloseInQuotations(utilPath.toAbsolutePath().toString()) + " a -y %s %s"
+                .formatted(encloseInQuotations(archive.toAbsolutePath().toString()),
+                        encloseInQuotations(sourceFolder.toAbsolutePath() + "\\*"));
     }
 }

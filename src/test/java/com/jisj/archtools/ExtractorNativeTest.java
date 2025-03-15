@@ -9,27 +9,19 @@ import org.junit.jupiter.api.Test;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Comparator;
 
-import static java.lang.Integer.MAX_VALUE;
+import static com.jisj.archtools.Uils.clearFolder;
 import static org.junit.jupiter.api.Assertions.*;
 
-class ExtractorImplTest {
-    private static final Path archiveRAR = Path.of("src/test/resources/RAR archive.rar"); //264 files
-    private static final Path archiveZIP = Path.of("src/test/resources/ZIP archive.zip"); //7 files
-    private static final Path archive7z = Path.of("src/test/resources/SEVEN archive.7z"); //2 files
+class ExtractorNativeTest {
+    private static final Path archiveRAR = Path.of("src/test/resources/RAR archive.rar"); //5 files
+    private static final Path archiveZIP = Path.of("src/test/resources/ZIP archive.zip"); //4 files
+    private static final Path archive7z = Path.of("src/test/resources/SEVEN archive.7z"); //3 files
     private static final Path destination = Path.of("target/test-data/tmp");
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     @BeforeAll
     static void setUp() throws IOException {
-        //clear target/test-data/tmp
-        try (var files = Files.walk(destination, MAX_VALUE)) {
-            files.filter(p -> !p.equals(destination))
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
-        }
+        clearFolder(destination);
     }
 
     @Test
@@ -50,12 +42,13 @@ class ExtractorImplTest {
 
     @Test
     void extractTo_RAR() throws IOException {
-        ExtractorImpl unPacker = new ExtractorImpl(new RarExtractCmd());
+        ExtractorNative unPacker = new ExtractorNative(new RarExtractCmd());
         unPacker.extractTo(archiveRAR, destination);
         assertFalse(Files.exists(destination.resolve(archiveRAR.getFileName().toString() + ".log")));
         unPacker.setBreakTimeOutSec(0);
 
 //        unPacker.setProgressListener(System.out::println);
+//        unPacker.setMessageListener(System.out::println);
         unPacker.extractTo(archiveRAR, destination);
         unPacker.setBreakTimeOutSec(10);
 
@@ -70,7 +63,7 @@ class ExtractorImplTest {
         while (true) {
             index = str.indexOf(find);
             if (index == -1) break;
-            str = str.substring(index+1);
+            str = str.substring(index + 1);
             count++;
         }
         assertEquals(2, count);
@@ -78,20 +71,21 @@ class ExtractorImplTest {
 
     @Test
     void getFileList_RAR() throws FileNotFoundException, ArchiveException {
-        ExtractorImpl unPacker = new ExtractorImpl(new RarExtractCmd());
+        ExtractorNative unPacker = new ExtractorNative(new RarExtractCmd());
 //        unPacker.setProgressListener(System.out::println);
-        assertEquals(264, unPacker.getFileList(archiveRAR).size());
+        assertEquals(5, unPacker.getFileList(archiveRAR).size());
         assertEquals(0, unPacker.getFileList(archiveZIP).size());
         assertEquals(0, unPacker.getFileList(archive7z).size());
     }
 
     @Test
     void getFileList_ZIP_7Z() throws FileNotFoundException, ArchiveException {
-        ExtractorImpl unPacker = new ExtractorImpl(new ZipCmd());
+        ExtractorNative unPacker = new ExtractorNative(new ZipCmd());
 //        unPacker.setProgressListener(System.out::println);
-        assertEquals(264, unPacker.getFileList(archiveRAR).size());
-        assertEquals(7, unPacker.getFileList(archiveZIP).size());
-        assertEquals(2, unPacker.getFileList(archive7z).size());
+//        unPacker.setMessageListener(System.out::println);
+        assertEquals(5, unPacker.getFileList(archiveRAR).size());
+        assertEquals(4, unPacker.getFileList(archiveZIP).size());
+        assertEquals(3, unPacker.getFileList(archive7z).size());
     }
 
 }

@@ -13,17 +13,22 @@ import java.util.function.Consumer;
 /**
  * Class with commands for extract files from archives using native archive utils
  */
-public class ExtractorImpl implements Extractor {
+public class ExtractorNative implements Extractor {
     private final CmdExtractUtil util;
     private int breakTimeOutSec = 10;
     private Path archive;
     private Path logFile;
     private boolean appendLog = false;
-    private Consumer<Integer> progress;
+    private Consumer<Integer> progressListener;
+    private Consumer<String> messageListener;
     private int progressCount = 0;
     private boolean debugMode = false;
 
-    public ExtractorImpl(CmdExtractUtil util) {
+    /**
+     * Creates new {@link Extractor} object
+     * @param util command interface {@link CmdExtractUtil}
+     */
+    public ExtractorNative(CmdExtractUtil util) {
         this.util = util;
         if (!Files.exists(util.getUtilPath()))
             throw new IllegalArgumentException("Archive util not found: " + util.getUtilPath());
@@ -32,7 +37,7 @@ public class ExtractorImpl implements Extractor {
     /**
      * Sets break extracting timeout in sec
      *
-     * @param breakTimeOutSec new value in sec. Default: 120sec
+     * @param breakTimeOutSec new value in sec. Default: 10sec
      */
     public void setBreakTimeOutSec(int breakTimeOutSec) {
         this.breakTimeOutSec = breakTimeOutSec;
@@ -56,13 +61,13 @@ public class ExtractorImpl implements Extractor {
         this.appendLog = appendLog;
     }
 
-    /**
-     * Sets progress listener. Progress increases with each new string from output stream of {@code Process}
-     * @param progress {@code Consumer<Integer>}
-     */
-    @SuppressWarnings("unused")
-    public void setProgressListener(Consumer<Integer> progress) {
-        this.progress = progress;
+    @Override
+    public void setProgressListener(Consumer<Integer> progressListener) {
+        this.progressListener = progressListener;
+    }
+    @Override
+    public void setMessageListener(Consumer<String> messageListener) {
+        this.messageListener = messageListener;
     }
 
     /**
@@ -164,7 +169,7 @@ public class ExtractorImpl implements Extractor {
 
             result = getFileList(getReader(process.getInputStream())
                     .lines()
-                    .peek(this::progressCounter)
+                    .peek(this::updateListeners)
                     .toList());
             List<String> errors = getReader(process.getErrorStream()).lines().toList();
 
@@ -196,8 +201,9 @@ public class ExtractorImpl implements Extractor {
         return new BufferedReader(new InputStreamReader(is));
     }
 
-    private void progressCounter(String nextElement) {
-        if (progress != null) progress.accept(++progressCount);
+    private void updateListeners(String nextElement) {
+        if (progressListener != null) progressListener.accept(++progressCount);
+        if (messageListener != null) messageListener.accept(nextElement);
     }
 
     private void assertFileNotFound(Path file) throws FileNotFoundException {
@@ -217,7 +223,7 @@ public class ExtractorImpl implements Extractor {
         BufferedReader reader = getReader(inputStream);
         String line;
         while ((line = reader.readLine()) !=null) {
-            progressCounter(line);
+            updateListeners(line);
             saveToLog(line);
         }
     }
@@ -235,7 +241,7 @@ public class ExtractorImpl implements Extractor {
                 ", archive=" + archive +
                 ", logFile=" + logFile +
                 ", appendLog=" + appendLog +
-                ", progress=" + progress +
+                ", progress=" + progressListener +
                 ", progressCount=" + progressCount +
                 ", debugMode=" + debugMode +
                 '}';
