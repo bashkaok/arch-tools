@@ -4,7 +4,6 @@ import com.jisj.archtools.cmd.ZipCmd;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -25,7 +24,7 @@ class PackerNativeTest {
     @Test
     void packOfFolder() throws IOException {
         PackerNative packer = new PackerNative(new ZipCmd());
-        assertThrowsExactly(FileNotFoundException.class, () -> packer.packOfFolder(destination.resolve("packer-test.zip"),
+        assertThrowsExactly(ArchiveException.class, () -> packer.packOfFolder(destination.resolve("packer-test.zip"),
                 destination.resolve("fake-folder")));
         assertThrowsExactly(IllegalArgumentException.class, ()-> packer.packOfFolder(destination.resolve("packer-test.zip"),
                 resources.resolve("fake-folder.fld")));

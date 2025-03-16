@@ -28,7 +28,7 @@ public enum Type {
      */
     public static Type getType(Path fileName) {
         return Arrays.stream(values())
-                .filter(value -> getFileExtension(fileName, false).equalsIgnoreCase(value.ext))
+                .filter(value -> Utils.getFileExtension(fileName, false).equalsIgnoreCase(value.ext))
                 .findFirst().orElse(UNKNOWN);
     }
 
@@ -40,27 +40,4 @@ public enum Type {
         return "." + ext;
     }
 
-    /**
-     * Gets file extension. Extension excludes from last chars after dot in the file name
-     * @param fileName file name
-     * @param dotInclude {@code true} returns extension with leading dot
-     * @return file extension
-     * @see #getFileExtension(Path, boolean)
-     */
-    public static String getFileExtension(String fileName, boolean dotInclude) {
-        int dotIndex = fileName.lastIndexOf('.') + (dotInclude ? 0 : 1);
-        return (dotIndex == -1) ? "" : fileName.substring(dotIndex).toLowerCase();
-    }
-
-    /**
-     * Gets file extension. Extension excludes from last chars after dot in the file name
-     * @param fileName file name
-     * @param dotInclude {@code true} returns extension with leading dot
-     * @return file extension
-     * @see #getFileExtension(String, boolean)
-     */
-
-    public static String getFileExtension(Path fileName, boolean dotInclude) {
-        return getFileExtension(fileName.getFileName().toString(), dotInclude);
-    }
 }

@@ -12,11 +12,10 @@ public interface Extractor extends Archiver {
      * Extracts files from archive to specified destination directory
      * @param archive archive file path
      * @param destination destination directory path
-     * @throws FileNotFoundException when archive file not found or destination path not found or not is directory
-     * @throws ArchiveException on archive extracting errors
+     * @throws ArchiveException when archive file not found or destination path not found or not is directory, on archive extracting errors
      * @throws TimeOutException on timeout breaking
      */
-    void extractTo(Path archive, Path destination) throws FileNotFoundException, ArchiveException;
+    void extractTo(Path archive, Path destination) throws ArchiveException;
 
     /**
      * Gets file list from specified archive
@@ -27,4 +26,11 @@ public interface Extractor extends Archiver {
      * @throws TimeOutException on timeout breaking
      */
     List<String> getFileList(Path archive) throws FileNotFoundException, ArchiveException, TimeOutException;
+
+    /**
+     * Tests specified archive
+     * @param archive archive file path
+     * @throws ArchiveException when archive file not found, or archive extracting errors
+     */
+    void test(Path archive) throws ArchiveException;
 }

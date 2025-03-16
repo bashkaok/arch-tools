@@ -14,4 +14,8 @@ public class ArchiveException extends IOException {
     public ArchiveException(Throwable cause) {
         super(cause);
     }
+
+    public ArchiveException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

@@ -24,6 +24,7 @@ public class PackerNative implements Packer {
 
     /**
      * Creates new {@link Packer} object
+     *
      * @param util command interface {@link CmdPackUtil}
      */
     public PackerNative(CmdPackUtil util) {
@@ -58,6 +59,7 @@ public class PackerNative implements Packer {
     /**
      * Sets output to console. Reading of input stream and error stream is unavailable
      * Use this flag to debug
+     *
      * @param debugMode {@code true} sets output to console. Default {@code false}
      */
     @SuppressWarnings("unused")
@@ -68,20 +70,24 @@ public class PackerNative implements Packer {
     /**
      * {@inheritDoc}
      *
-     * @throws FileNotFoundException    {@inheritDoc}
+     * @throws ArchiveException         {@inheritDoc}
      * @throws IllegalArgumentException if the filesFolder is not directory; target archive overlaps with the source folder
      * @throws TimeOutException         on timeout breaking
      * @implNote This implementation creates all directories in path of archive file
      */
     @Override
-    public void packOfFolder(Path archive, Path filesFolder) throws IOException {
+    public void packOfFolder(Path archive, Path filesFolder) throws ArchiveException {
         if (!Files.exists(filesFolder))
-            throw new FileNotFoundException("Folder with files not found: " + filesFolder.toAbsolutePath());
+            throw new ArchiveException("Folder with files not found: " + filesFolder.toAbsolutePath());
         if (!Files.isDirectory(filesFolder))
             throw new IllegalArgumentException("Source files folder is not a directory: " + filesFolder.toAbsolutePath());
         if (archive.getParent().startsWith(filesFolder))
             throw new IllegalArgumentException("Target archive overlaps with the source folder: <" + archive + "> and <" + filesFolder + ">");
-        Files.createDirectories(archive.getParent());
+        try {
+            Files.createDirectories(archive.getParent());
+        } catch (IOException e) {
+            throw new ArchiveException("Cannot create target folder" + archive.getParent(), e);
+        }
 
         try {
             ProcessBuilder builder = new ProcessBuilder(util.packOfFolderCmd(archive, filesFolder));
@@ -103,9 +109,7 @@ public class PackerNative implements Packer {
             if (process.exitValue() != 0) {
                 throw new ArchiveException("Archiving errors: " + String.join("\n", errors));
             }
-        } catch (TimeOutException e) {
-            throw new TimeOutException(e);
-        } catch (ArchiveException | InterruptedException e) {
+        } catch (InterruptedException | IOException e) {
             throw new ArchiveException(e);
         }
     }

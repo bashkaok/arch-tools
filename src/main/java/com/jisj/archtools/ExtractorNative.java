@@ -15,7 +15,7 @@ import java.util.function.Consumer;
  */
 public class ExtractorNative implements Extractor {
     private final CmdExtractUtil util;
-    private int breakTimeOutSec = 10;
+    private int breakTimeOutSec = 120;
     private Path archive;
     private Path logFile;
     private boolean appendLog = false;
@@ -83,17 +83,20 @@ public class ExtractorNative implements Extractor {
     /**
      * {@inheritDoc}
      *
-     * @throws FileNotFoundException {@inheritDoc}
      * @throws ArchiveException      {@inheritDoc}
      * @throws TimeOutException      on timeout breaking
      */
     @Override
-    public void extractTo(Path archive, Path destination) throws TimeOutException, FileNotFoundException, ArchiveException {
-        assertFileNotFound(archive);
-        assertFileNotFound(destination);
+    public void extractTo(Path archive, Path destination) throws TimeOutException, ArchiveException {
+        try {
+            assertFileNotFound(archive);
+            assertFileNotFound(destination);
+        } catch (FileNotFoundException e) {
+            throw new ArchiveException(e);
+        }
 
         if (!Files.isDirectory(destination))
-            throw new FileNotFoundException("Destination path is not directory: " + destination);
+            throw new ArchiveException("Destination path is not directory: " + destination);
 
         init(archive);
 
@@ -187,6 +190,11 @@ public class ExtractorNative implements Extractor {
         return result;
     }
 
+    @Override
+    public void test(Path archive) throws ArchiveException {
+        throw new UnsupportedCommand("Command not supported");
+    }
+
     /**
      * For overload in subclass
      *
@@ -209,7 +217,6 @@ public class ExtractorNative implements Extractor {
     private void assertFileNotFound(Path file) throws FileNotFoundException {
         if (!Files.exists(file)) throw new FileNotFoundException("File/Directory not found: " + file);
     }
-
 
     private void createLog(Path archive, Path destination) throws IOException {
         this.logFile = Files.createFile(destination.resolve(archive.getFileName().toString() + ".log"));
