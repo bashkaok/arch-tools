@@ -8,9 +8,9 @@ import java.util.function.Consumer;
 public interface Archiver {
     /**
      * Sets progress listener. Progress increases with each new string from output stream of {@code Process}
-     * @param progressListener {@code Consumer<Integer>}
+     * @param progressListener {@code Consumer<Long>}
      */
-    void setProgressListener(Consumer<Integer> progressListener);
+    void setProgressListener(Consumer<Long> progressListener);
 
     /**
      * Sets message listener. Listener gets each new string from output stream of {@code Process}

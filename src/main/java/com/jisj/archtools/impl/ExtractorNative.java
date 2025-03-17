@@ -1,5 +1,9 @@
-package com.jisj.archtools;
+package com.jisj.archtools.impl;
 
+import com.jisj.archtools.ArchiveException;
+import com.jisj.archtools.Extractor;
+import com.jisj.archtools.TimeOutException;
+import com.jisj.archtools.UnsupportedCommand;
 import com.jisj.archtools.cmd.CmdExtractUtil;
 
 import java.io.*;
@@ -19,9 +23,9 @@ public class ExtractorNative implements Extractor {
     private Path archive;
     private Path logFile;
     private boolean appendLog = false;
-    private Consumer<Integer> progressListener;
+    private Consumer<Long> progressListener;
     private Consumer<String> messageListener;
-    private int progressCount = 0;
+    private long progressCount = 0;
     private boolean debugMode = false;
 
     /**
@@ -62,7 +66,7 @@ public class ExtractorNative implements Extractor {
     }
 
     @Override
-    public void setProgressListener(Consumer<Integer> progressListener) {
+    public void setProgressListener(Consumer<Long> progressListener) {
         this.progressListener = progressListener;
     }
     @Override
@@ -88,12 +92,8 @@ public class ExtractorNative implements Extractor {
      */
     @Override
     public void extractTo(Path archive, Path destination) throws TimeOutException, ArchiveException {
-        try {
-            assertFileNotFound(archive);
-            assertFileNotFound(destination);
-        } catch (FileNotFoundException e) {
-            throw new ArchiveException(e);
-        }
+        assertFileNotFound(archive);
+        assertFileNotFound(destination);
 
         if (!Files.isDirectory(destination))
             throw new ArchiveException("Destination path is not directory: " + destination);
@@ -155,12 +155,10 @@ public class ExtractorNative implements Extractor {
     /**
      * {@inheritDoc}
      *
-     * @throws FileNotFoundException {@inheritDoc}
      * @throws ArchiveException      {@inheritDoc}
-     * @throws TimeOutException      {@inheritDoc}
      */
     @Override
-    public List<String> getFileList(Path archive) throws FileNotFoundException, ArchiveException, TimeOutException {
+    public List<String> getFileList(Path archive) throws ArchiveException {
         assertFileNotFound(archive);
         init(archive);
         List<String> result;
@@ -214,8 +212,8 @@ public class ExtractorNative implements Extractor {
         if (messageListener != null) messageListener.accept(nextElement);
     }
 
-    private void assertFileNotFound(Path file) throws FileNotFoundException {
-        if (!Files.exists(file)) throw new FileNotFoundException("File/Directory not found: " + file);
+    private void assertFileNotFound(Path file) throws ArchiveException {
+        if (!Files.exists(file)) throw new ArchiveException("File/Directory not found: " + file);
     }
 
     private void createLog(Path archive, Path destination) throws IOException {

@@ -1,6 +1,5 @@
 package com.jisj.archtools;
 
-import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -21,11 +20,9 @@ public interface Extractor extends Archiver {
      * Gets file list from specified archive
      * @param archive archive file path
      * @return archive file list. If the extract util incompatible with archive type will be return empty {@link List}
-     * @throws FileNotFoundException when archive file not found
-     * @throws ArchiveException on archive extracting errors
-     * @throws TimeOutException on timeout breaking
+     * @throws ArchiveException on archive extracting errors, archive file not found, on timeout breaking
      */
-    List<String> getFileList(Path archive) throws FileNotFoundException, ArchiveException, TimeOutException;
+    List<String> getFileList(Path archive) throws ArchiveException;
 
     /**
      * Tests specified archive

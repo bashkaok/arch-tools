@@ -1,5 +1,8 @@
-package com.jisj.archtools;
+package com.jisj.archtools.impl;
 
+import com.jisj.archtools.ArchiveException;
+import com.jisj.archtools.Packer;
+import com.jisj.archtools.TimeOutException;
 import com.jisj.archtools.cmd.CmdPackUtil;
 
 import java.io.*;
@@ -16,9 +19,9 @@ import java.util.function.Consumer;
 public class PackerNative implements Packer {
 
     private final CmdPackUtil util;
-    private Consumer<Integer> progressListener;
+    private Consumer<Long> progressListener;
     private Consumer<String> messageListener;
-    private int progressCount = 0;
+    private long progressCount = 0;
     private int breakTimeOutSec = 60;
     private boolean debugMode = false;
 
@@ -32,7 +35,7 @@ public class PackerNative implements Packer {
     }
 
     @Override
-    public void setProgressListener(Consumer<Integer> progressListener) {
+    public void setProgressListener(Consumer<Long> progressListener) {
         this.progressListener = progressListener;
     }
 

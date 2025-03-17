@@ -3,6 +3,8 @@ package com.jisj.archtools.conv;
 import com.jisj.archtools.*;
 import com.jisj.archtools.cmd.RarExtractCmd;
 import com.jisj.archtools.cmd.ZipCmd;
+import com.jisj.archtools.impl.ExtractorNative;
+import com.jisj.archtools.impl.PackerNative;
 
 import java.io.IOException;
 import java.nio.file.Path;

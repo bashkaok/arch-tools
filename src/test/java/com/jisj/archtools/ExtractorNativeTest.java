@@ -3,6 +3,7 @@ package com.jisj.archtools;
 import com.jisj.archtools.cmd.CmdExtractUtil;
 import com.jisj.archtools.cmd.RarExtractCmd;
 import com.jisj.archtools.cmd.ZipCmd;
+import com.jisj.archtools.impl.ExtractorNative;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -14,7 +15,7 @@ import static com.jisj.archtools.Uils.clearFolder;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ExtractorNativeTest {
-    private static final Path archiveRAR = Path.of("src/test/resources/RAR archive.rar"); //5 files
+    private static final Path archiveRAR = Path.of("src/test/resources/RAR archive.rar"); //7 files
     private static final Path archiveZIP = Path.of("src/test/resources/ZIP archive.zip"); //4 files
     private static final Path archive7z = Path.of("src/test/resources/SEVEN archive.7z"); //3 files
     private static final Path destination = Path.of("target/test-data/tmp");
@@ -70,20 +71,20 @@ class ExtractorNativeTest {
     }
 
     @Test
-    void getFileList_RAR() throws FileNotFoundException, ArchiveException {
+    void getFileList_RAR() throws ArchiveException {
         ExtractorNative unPacker = new ExtractorNative(new RarExtractCmd());
 //        unPacker.setProgressListener(System.out::println);
-        assertEquals(5, unPacker.getFileList(archiveRAR).size());
+        assertEquals(7, unPacker.getFileList(archiveRAR).size());
         assertEquals(0, unPacker.getFileList(archiveZIP).size());
         assertEquals(0, unPacker.getFileList(archive7z).size());
     }
 
     @Test
-    void getFileList_ZIP_7Z() throws FileNotFoundException, ArchiveException {
+    void getFileList_ZIP_7Z() throws ArchiveException {
         ExtractorNative unPacker = new ExtractorNative(new ZipCmd());
 //        unPacker.setProgressListener(System.out::println);
 //        unPacker.setMessageListener(System.out::println);
-        assertEquals(5, unPacker.getFileList(archiveRAR).size());
+        assertEquals(7, unPacker.getFileList(archiveRAR).size());
         assertEquals(4, unPacker.getFileList(archiveZIP).size());
         assertEquals(3, unPacker.getFileList(archive7z).size());
     }

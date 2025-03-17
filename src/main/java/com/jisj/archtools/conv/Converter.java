@@ -5,7 +5,6 @@ import com.jisj.archtools.Extractor;
 import com.jisj.archtools.Packer;
 import com.jisj.archtools.Type;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,7 +35,7 @@ public class Converter {
     private final Set<Options> options = new HashSet<>();
     private Consumer<String> stepMessageListener;
     private Consumer<String> messageListener;
-    private Consumer<Integer> progressListener;
+    private Consumer<Long> progressListener;
     private long maxProgressCount;
     private State state;
 
@@ -88,6 +87,7 @@ public class Converter {
         this.packer = packer;
     }
 
+    @SuppressWarnings("unused")
     public Packer getPacker() {
         return packer;
     }
@@ -120,8 +120,8 @@ public class Converter {
         setMaxProgressCount();
     }
 
-    private void progressTranslator(Integer integer) {
-        if (progressListener != null) progressListener.accept(integer);
+    private void progressTranslator(long counter) {
+        if (progressListener != null) progressListener.accept(counter);
 
     }
 
@@ -161,7 +161,7 @@ public class Converter {
      *
      * @param progressListener {@code Consumer<Integer>}
      */
-    public void setProgressListener(Consumer<Integer> progressListener) {
+    public void setProgressListener(Consumer<Long> progressListener) {
         this.progressListener = progressListener;
     }
 
@@ -181,7 +181,7 @@ public class Converter {
     private void setMaxProgressCount() {
         try {
             this.maxProgressCount = extractor.getFileList(sourceArchive).size() + MAX_PROGRESS_CORRECTION;
-        } catch (FileNotFoundException | ArchiveException e) {
+        } catch (ArchiveException e) {
             this.maxProgressCount = 0;
         }
     }

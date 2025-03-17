@@ -1,6 +1,8 @@
 package com.jisj.archtools;
 
 import com.jisj.archtools.cmd.ZipCmd;
+import com.jisj.archtools.impl.ExtractorNative;
+import com.jisj.archtools.impl.PackerNative;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -34,6 +36,6 @@ class PackerNativeTest {
 //        packer.setMessageListener(System.out::println);
         packer.packOfFolder(results.resolve("ZIP archive.zip"), resources.resolve("files-folder"));
         Extractor extractor = new ExtractorNative(new ZipCmd());
-        assertEquals(5, extractor.getFileList(results.resolve("ZIP archive.zip")).size());
+        assertEquals(7, extractor.getFileList(results.resolve("ZIP archive.zip")).size());
     }
 }
