@@ -1,11 +1,10 @@
 package com.jisj.archtools;
 
 public class UnsupportedCommand extends ArchiveException {
+    /**
+     * Default constructor
+     */
     public UnsupportedCommand() {
-        super();
+        super("Unsupported command");
     }
-    public UnsupportedCommand(String message) {
-        super(message);
-    }
-
 }

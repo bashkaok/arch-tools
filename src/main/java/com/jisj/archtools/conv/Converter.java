@@ -1,9 +1,6 @@
 package com.jisj.archtools.conv;
 
-import com.jisj.archtools.ArchiveException;
-import com.jisj.archtools.Extractor;
-import com.jisj.archtools.Packer;
-import com.jisj.archtools.Type;
+import com.jisj.archtools.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -27,6 +24,7 @@ public class Converter {
     private Type targetFormat;
     private Path temporaryRootFolder;
 
+    private UtilProvider provider;
     private Extractor extractor;
     private Packer packer;
     private Path destinationArchive;
@@ -38,6 +36,7 @@ public class Converter {
     private Consumer<Long> progressListener;
     private long maxProgressCount;
     private State state;
+    private int sourceArchiveFilesCount;
 
 
     Converter() {
@@ -75,6 +74,10 @@ public class Converter {
         return temporaryRootFolder;
     }
 
+    void setProvider(UtilProvider provider) {
+        this.provider = provider;
+    }
+
     void setExtractor(Extractor extractor) {
         this.extractor = extractor;
     }
@@ -104,6 +107,10 @@ public class Converter {
         this.options.addAll(List.of(options));
     }
 
+    public Set<Options> getOptions() {
+        return options;
+    }
+
     void build() {
         temporaryArchiveFolder = getTemporaryRootFolder()
                 .resolve(getNoExtName(getSourceArchive()));
@@ -116,8 +123,6 @@ public class Converter {
         extractor.setProgressListener(this::progressTranslator);
         packer.setMessageListener(this::messageTranslator);
         packer.setProgressListener(this::progressTranslator);
-
-        setMaxProgressCount();
     }
 
     private void progressTranslator(long counter) {
@@ -135,7 +140,7 @@ public class Converter {
 
     private void assertFiles() throws ArchiveException {
         if (!Files.exists(sourceArchive))
-            throw new ArchiveException("Source archive file not found" + sourceArchive.toString());
+            throw new ArchiveException("Source archive file not found: " + sourceArchive.toAbsolutePath());
 
         if (Type.getType(sourceArchive) == Type.UNKNOWN)
             throw new IllegalArgumentException("Unsupported archive format: " + sourceArchive);
@@ -145,6 +150,10 @@ public class Converter {
 
         if (sourceArchive.equals(destinationArchive))
             throw new IllegalStateException("Source ant target archives are same: " + sourceArchive + " : " + destinationArchive);
+
+        if (Files.exists(destinationArchive))
+            throw new ArchiveException("Target archive file already exists: " + destinationArchive.toAbsolutePath());
+
     }
 
     /**
@@ -174,16 +183,12 @@ public class Converter {
         this.stepMessageListener = stepMessageListener;
     }
 
+    /**
+     * Gets max count of progress
+     * @return count
+     */
     public long getMaxProgressCount() {
         return maxProgressCount;
-    }
-
-    private void setMaxProgressCount() {
-        try {
-            this.maxProgressCount = extractor.getFileList(sourceArchive).size() + MAX_PROGRESS_CORRECTION;
-        } catch (ArchiveException e) {
-            this.maxProgressCount = 0;
-        }
     }
 
     protected boolean testSourceArchive() {
@@ -197,11 +202,16 @@ public class Converter {
         }
     }
 
+    /**
+     * Tests target (result) archive
+     *
+     * @return true if successfully
+     */
     protected boolean testTargetArchive() {
         try {
             stepMessageTranslator("Converting : Testing - " + destinationArchive.getFileName());
-            throw new UnsupportedOperationException();
-        } catch (Exception e) {
+            throw new UnsupportedCommand();
+        } catch (ArchiveException e) {
             setState(Options.TEST_AFTER, e);
             return false;
         }
@@ -213,8 +223,30 @@ public class Converter {
      * @return {@code true} if equals
      */
     protected boolean compare() {
-        stepMessageTranslator("Converting : Comparing - " + destinationArchive.getFileName());
-        return false;
+        stepMessageTranslator("Converting : Comparing - " + sourceArchive.getFileName() + " and " + destinationArchive.getFileName());
+        try {
+            final int resultArchiveFilesCont = getTargetFilesCount();
+            if (sourceArchiveFilesCount != resultArchiveFilesCont) {
+                throw new ArchiveException("Source and target archives files count is differ:" +
+                        "\n<" + sourceArchiveFilesCount + "> in " + sourceArchive.toAbsolutePath() +
+                        "\n<" + resultArchiveFilesCont + "> in " + destinationArchive.toAbsolutePath());
+            }
+        } catch (ArchiveException e) {
+            setState(Options.COMPARE, e);
+            return false;
+        }
+        return true;
+    }
+
+    private int getTargetFilesCount() throws ArchiveException {
+        if (packer instanceof Extractor targetExtractor) {
+            return targetExtractor.getFileList(destinationArchive).size();
+        } else {
+            return provider.getExtractor(targetFormat)
+                    .orElseThrow(()-> new ArchiveException("Extractor not found for " + destinationArchive.toAbsolutePath()))
+                    .getFileList(destinationArchive)
+                    .size();
+        }
     }
 
     protected boolean unPack() {
@@ -257,24 +289,38 @@ public class Converter {
         try {
             assertFiles();
         } catch (ArchiveException e) {
-            setState(Options.ALL, e);
+            setState(Options.START, e);
             return false;
         }
+
         if (options.contains(Options.TEST_BEFORE))
-            if(!testSourceArchive()) return false;
+            if (!testSourceArchive()) return false;
+
+        try {
+            sourceArchiveFilesCount = extractor.getFileList(sourceArchive).size();
+            if (sourceArchiveFilesCount == 0) {
+                throw new ArchiveException("No files to extract in " + sourceArchive.toAbsolutePath());
+            }
+            maxProgressCount = sourceArchiveFilesCount + MAX_PROGRESS_CORRECTION;
+        } catch (ArchiveException e) {
+            setState(Options.START, e);
+            return false;
+        }
+
 
         if (!unPack()) return false;
         if (!pack()) return false;
 
         if (options.contains(Options.TEST_AFTER))
-            if(!testTargetArchive()) return false;
+            if (!testTargetArchive()) return false;
         if (options.contains(Options.COMPARE))
-            if(!compare()) return false;
+            if (!compare()) return false;
         try {
             removeTemporaryFolder();
         } catch (IOException e) {
             log.warning("Cannot delete temporary folder " + getTemporaryArchiveFolder());
         }
+        setState(Options.ALL, null);
         return true;
     }
 
@@ -315,6 +361,10 @@ public class Converter {
      * Convertor options
      */
     public enum Options {
+        /**
+         * First converting step. Check environment and source file
+         */
+        START,
         /**
          * Perform extracting from source archive. Performs always
          */

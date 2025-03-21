@@ -30,11 +30,11 @@ public record ZipCmd(Path utilPath) implements CmdExtractUtil, CmdPackUtil {
      *
      * @param archive     source archive
      * @param destination destination folder
-     * @return {@code 7z x -y <archive> <destination>}
+     * @return {@code 7z x -y <archive> -o<destination>}
      */
     @Override
     public String extractToDestinationCmd(Path archive, Path destination) {
-        return encloseInQuotations(utilPath.toAbsolutePath().toString()) + " x -y %s %s"
+        return encloseInQuotations(utilPath.toAbsolutePath().toString()) + " x -y %s -o%s"
                 .formatted(encloseInQuotations(archive.toAbsolutePath().toString()),
                         encloseInQuotations(destination.toAbsolutePath().toString()));
     }

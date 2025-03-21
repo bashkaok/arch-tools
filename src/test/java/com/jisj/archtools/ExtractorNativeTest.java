@@ -71,6 +71,38 @@ class ExtractorNativeTest {
     }
 
     @Test
+    void extractTo_7Z() throws IOException {
+        Path zipTest = destination.resolve("7z-test");
+        Files.createDirectories(zipTest);
+        ExtractorNative unPacker = new ExtractorNative(new ZipCmd());
+        unPacker.extractTo(archive7z, zipTest);
+        assertFalse(Files.exists(zipTest.resolve(archive7z.getFileName().toString() + ".log")));
+        assertTrue(Files.list(zipTest).findAny().isPresent()); //destination folder not empty
+        unPacker.setBreakTimeOutSec(0);
+
+//        unPacker.setProgressListener(System.out::println);
+//        unPacker.setMessageListener(System.out::println);
+        unPacker.extractTo(archive7z, zipTest);
+        unPacker.setBreakTimeOutSec(10);
+
+        unPacker.setLogFile(zipTest.resolve("test.log"));
+        unPacker.setAppendLog(true);
+        assertThrowsExactly(ArchiveException.class, () -> unPacker.extractTo(Path.of("src/test/resources/fake.7z"), zipTest));
+        assertThrowsExactly(ArchiveException.class, () -> unPacker.extractTo(Path.of("src/test/resources/fake.7z"), zipTest));
+        String str = Files.readString(zipTest.resolve("test.log"));
+        int count = 0;
+        int index;
+        String find = "Cannot open the file as archive";
+        while (true) {
+            index = str.indexOf(find);
+            if (index == -1) break;
+            str = str.substring(index + 1);
+            count++;
+        }
+        assertEquals(2, count);
+    }
+
+    @Test
     void getFileList_RAR() throws ArchiveException {
         ExtractorNative unPacker = new ExtractorNative(new RarExtractCmd());
 //        unPacker.setProgressListener(System.out::println);

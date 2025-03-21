@@ -88,6 +88,8 @@ public class ConverterBuilder {
         if (converter.getTargetFormat() == Type.UNKNOWN)
             throw new IllegalArgumentException("Unexpected archive type");
 
+        converter.setProvider(provider);
+
         converter.setExtractor(provider.getExtractor(Type.getType(converter.getSourceArchive()))
                 .orElseThrow(()-> new IllegalStateException("Extractor utility not found for " + Type.getType(converter.getSourceArchive()))));
 

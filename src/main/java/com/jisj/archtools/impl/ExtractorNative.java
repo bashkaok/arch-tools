@@ -190,7 +190,7 @@ public class ExtractorNative implements Extractor {
 
     @Override
     public void test(Path archive) throws ArchiveException {
-        throw new UnsupportedCommand("Command not supported");
+        throw new UnsupportedCommand();
     }
 
     /**

@@ -7,7 +7,12 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
+/**
+ * Common static methods
+ */
 public class Utils {
+    private Utils(){}
+
     /**
      * Deletes the specified folder and all children folders and files
      * @param folder folder {@code Path}
@@ -44,6 +49,11 @@ public class Utils {
         return getFileExtension(fileName.getFileName().toString(), dotInclude);
     }
 
+    /**
+     * Returns the file name without extension
+     * @param path {@code Path} to file
+     * @return {@code String} file name without extension and parent path
+     */
     public static String getNoExtName(Path path) {
         return path.getFileName().toString()
                 .substring(0, path.getFileName().toString().lastIndexOf(".")).trim();
