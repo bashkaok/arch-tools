@@ -45,4 +45,25 @@ class NestedZipPathTest {
         }
     }
 
+    @Test
+    void ordinary_path() throws IOException {
+        try (var nest = NestedZipPath.newPath(resources);
+             var files = Files.list(nest.getPath())) {
+            assertTrue(files.findAny().isPresent());
+        }
+    }
+
+    @Test
+    void file_name_in_path() throws IOException {
+        try (var nest = NestedZipPath.newPath(resources.resolve("nested-archive.zip"), "file1.zip", "file2.zip", "file2.txt")) {
+            assertEquals("Text from file2.txt", Files.readString(nest.getPath()));
+        }
+        NestedPath np = new NestedPath(resources.resolve("nested-archive.zip"), "file1.zip", "file2.zip", "file2.txt");
+        try (var nest = NestedZipPath.newPath(np)) {
+            assertEquals("Text from file2.txt", Files.readString(nest.getPath()));
+        }
+        assertEquals("file1.zip/file2.zip/file2.txt", np.ofNestFiles());
+
+    }
+
 }

@@ -336,6 +336,11 @@ public class Converter {
         return new ConverterBuilder();
     }
 
+    /**
+     * The builder for {@code Converter} class
+     * @param provider archive utility provider
+     * @return {@code ConverterBuilder} object
+     */
     public static ConverterBuilder builder(UtilProvider provider) {
         return new ConverterBuilder(provider);
     }

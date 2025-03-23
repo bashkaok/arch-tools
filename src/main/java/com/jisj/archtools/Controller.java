@@ -37,6 +37,9 @@ public interface Controller extends Archiver {
      */
     List<String> removeFiles(Path archive, List<String> pathsInArchive) throws ArchiveException;
 
+    /**
+     * Copy options of files in archives
+     */
     enum CopyOptions {
         /**
          * Replace existing file
