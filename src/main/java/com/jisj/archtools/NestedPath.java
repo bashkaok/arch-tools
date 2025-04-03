@@ -2,6 +2,7 @@ package com.jisj.archtools;
 
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.util.Arrays;
 
 /**
  * Immutable record with nested archive path<br>
@@ -38,6 +39,10 @@ public class NestedPath {
         return String.join("/", nestFiles);
     }
 
+    /**
+     * Getter for last modified time
+     * @return last modified file time | null
+     */
     public FileTime getLastModifiedTime() {
         return lastModifiedTime;
     }
@@ -71,6 +76,21 @@ public class NestedPath {
         if (isNested()) return rootPath.toAbsolutePath() + "?" + ofNestFiles();
         return rootPath.toAbsolutePath().toString();
 
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+
+        NestedPath that = (NestedPath) o;
+        return getRootPath().equals(that.getRootPath()) && Arrays.equals(getNestFiles(), that.getNestFiles());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getRootPath().hashCode();
+        result = 31 * result + Arrays.hashCode(getNestFiles());
+        return result;
     }
 
     @Override

@@ -7,12 +7,21 @@ import java.util.Arrays;
  * Types of supported archives
  */
 public enum Type {
+    /**
+     * RAR archive format
+     */
     RAR("rar"),
+    /**
+     * ZIP archive format
+     */
     ZIP("zip"),
     /**
      * 7z archive format
      */
     S7Z("7z"),
+    /**
+     * Unknown archive format
+     */
     UNKNOWN("");
 
     private final String ext;

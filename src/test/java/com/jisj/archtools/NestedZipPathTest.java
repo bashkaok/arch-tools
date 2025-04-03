@@ -66,4 +66,15 @@ class NestedZipPathTest {
 
     }
 
+    @Test
+    void testEquals() {
+        NestedPath path1 = new NestedPath(resources.resolve("nested-archive.zip"), "file1.zip", "file2.zip", "file2.txt");
+        NestedPath path2 = new NestedPath(resources.resolve("nested-archive.zip"), "file1.zip", "file2.zip", "file2.txt");
+        NestedPath path3 = new NestedPath(resources.resolve("nested-archive.zip"), "file1.zip", "file2.zip", "file3.txt");
+        NestedPath path4 = new NestedPath(resources.resolve("nested-archive.zip"));
+        NestedPath path5 = new NestedPath(resources.resolve("nested-archive.zip"));
+        assertEquals(path1, path2);
+        assertNotEquals(path1, path3);
+        assertEquals(path4, path5);
+    }
 }
